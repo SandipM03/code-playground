@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable @next/next/no-img-element */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type React from "react";
 import { useRef, useMemo, useCallback, useState, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
@@ -156,14 +157,14 @@ function ImagePlane({
 	const [isHovered, setIsHovered] = useState(false);
 
 	useEffect(() => {
-		if (material && texture) {
-			material.uniforms.map.value = texture;
+		if (material && texture && material.uniforms) {
+			(material.uniforms as any).map.value = texture;
 		}
 	}, [material, texture]);
 
 	useEffect(() => {
 		if (material && material.uniforms) {
-			material.uniforms.isHovered.value = isHovered ? 1.0 : 0.0;
+			(material.uniforms as any).isHovered.value = isHovered ? 1.0 : 0.0;
 		}
 	}, [material, isHovered]);
 
@@ -305,8 +306,8 @@ function GalleryScene({
 		const time = state.clock.getElapsedTime();
 		materials.forEach((material) => {
 			if (material && material.uniforms) {
-				material.uniforms.time.value = time;
-				material.uniforms.scrollForce.value = scrollVelocity;
+				(material.uniforms as any).time.value = time;
+				(material.uniforms as any).scrollForce.value = scrollVelocity;
 			}
 		});
 
@@ -366,8 +367,8 @@ function GalleryScene({
 
 			const material = materials[i];
 			if (material && material.uniforms) {
-				material.uniforms.opacity.value = opacity;
-				material.uniforms.blurAmount.value = blur;
+				(material.uniforms as any).opacity.value = opacity;
+				(material.uniforms as any).blurAmount.value = blur;
 			}
 		});
 	});
@@ -382,7 +383,8 @@ function GalleryScene({
 				if (!texture || !material) return null;
 				const worldZ = plane.z - depthRange / 2;
 
-				const aspect = texture.image ? texture.image.width / texture.image.height : 1;
+				const img: any = texture.image as any;
+				const aspect = img ? img.width / img.height : 1;
 				const scale: [number, number, number] = aspect > 1 ? [2 * aspect, 2, 1] : [2, 2 / aspect, 1];
 				return <ImagePlane key={plane.index} texture={texture} position={[plane.x, plane.y, worldZ]} scale={scale} material={material} />;
 			})}
@@ -419,8 +421,11 @@ export default function InfiniteGallery({
 		{ src: "https://res.cloudinary.com/dfohnurht/image/upload/v1754737021/lnqgpjn1sjj0uosa9wlz.jpg", alt: "" },
 		{ src: "https://res.cloudinary.com/dfohnurht/image/upload/v1750260492/sample.jpg", alt: "" },
 	],
-	className = "h-96 w-full",
-	style,
+	className="h-screen w-full",
+	style={
+        height: '100vh',
+        width: '100vw',
+    },
 	fadeSettings = {
 		fadeIn: { start: 0.05, end: 0.25 },
 		fadeOut: { start: 0.4, end: 0.43 },
@@ -454,7 +459,8 @@ export default function InfiniteGallery({
 
 	return (
 		<div className={className} style={style}>
-			<Canvas camera={{ position: [0, 0, 0], fov: 55 }} gl={{ antialias: true, alpha: true }}>
+			<Canvas camera={{ position: [0, 0, 0], fov: 55 }} gl={{ antialias: true, alpha: true }} className="h-screen w-full">
+                
 				<GalleryScene images={images} fadeSettings={fadeSettings} blurSettings={blurSettings} />
 			</Canvas>
 		</div>
